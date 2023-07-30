@@ -36,10 +36,26 @@ FASHION_TIPS = [
     "When in doubt, a little black dress is always a great choice.",
 ]
 
+# List of health and fitness tips
+HEALTH_TIPS = [
+    "Remember to drink plenty of water throughout the day to stay hydrated.",
+    "Include a variety of fruits and vegetables in your daily diet for essential nutrients.",
+    "Regular exercise can improve your mood and boost your energy levels.",
+    "Getting enough sleep is crucial for overall health and well-being.",
+    "Reduce stress through activities like meditation, yoga, or spending time in nature.",
+    "Limit your intake of sugary and processed foods for better health.",
+    "Incorporate strength training exercises to build and maintain muscle mass.",
+    "Aim for at least 30 minutes of moderate-intensity exercise most days of the week.",
+    "Practice portion control to avoid overeating and maintain a healthy weight.",
+    "Listen to your body and take rest days when needed during your fitness routine.",
+]
+
 # State keys for tracking the conversation flow
 STATE_ASKING_PREFERENCE = "asking_preference"
 STATE_FASHION_TIP_GIVEN = "fashion_tip_given"
 
+# State key for tracking the conversation flow related to health and fitness
+STATE_ASKING_HEALTH_CONDITION = "asking_health_condition"
 
 @textbase.chatbot("talking-bot")
 def on_message(message_history: List[Message], state: dict = None):
@@ -98,6 +114,16 @@ def on_message(message_history: List[Message], state: dict = None):
         state[STATE_FASHION_TIP_GIVEN] = True
         return fashion_tip, state
 
+    if "health" in user_message or "fitness" in user_message:
+        state[STATE_ASKING_HEALTH_CONDITION] = True
+        return "That's great! How would you describe your current health condition? Are you looking for tips on nutrition, exercise, or general wellness?", state
+
+    # Handle the health condition questions and provide a health tip accordingly
+    if state.get(STATE_ASKING_HEALTH_CONDITION):
+        health_tip = get_health_tip()
+        state[STATE_ASKING_HEALTH_CONDITION] = False
+        return health_tip, state
+
     # Generate GPT-3.5 Turbo response
     bot_response = models.OpenAI.generate(
         system_prompt=SYSTEM_PROMPT,
@@ -155,7 +181,7 @@ def get_current_weather(location):
 
 def get_past_days_weather_info(location, days_ago):
     # Replace 'YOUR_OPENWEATHER_API_KEY' with your actual OpenWeatherMap API key
-    api_key = 'YOUR_OPENWEATHER_API_KEY'
+    api_key = '13a578b44de9c18e47d345f9bd54bf4d'
     base_url = "http://api.openweathermap.org/data/2.5/onecall/timemachine"
     start_date = (datetime.utcnow() - timedelta(days=days_ago)).timestamp()
     lat, lon = get_coordinates(location)
@@ -213,3 +239,7 @@ def get_coordinates(location):
 def get_fashion_tip_based_on_preference(preference):
     # Randomly select a fashion tip based on the user's preference
     return random.choice(FASHION_TIPS)
+
+def get_health_tip():
+    # Randomly select a health tip
+    return random.choice(HEALTH_TIPS)
