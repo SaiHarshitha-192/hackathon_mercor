@@ -148,6 +148,14 @@ def on_message(message_history: List[Message], state: dict = None):
         else:
             return "Please specify the type of job you're looking for.", state
     
+    # Check if the user asks for latest news
+    if "news" in user_message:
+        news_info = get_latest_news()
+        if news_info:
+            return news_info, state
+        else:
+            return "Sorry, I couldn't fetch the latest news. Please try again later.", state
+
     return bot_response, state
 
 
@@ -268,7 +276,7 @@ def extract_job_type(user_message):
 
 def find_jobs(job_type):
     # Replace 'GITHUB_JOBS_API_BASE_URL' with the base URL of GitHub Jobs API
-    api_base_url = 'https://jobs.github.com/positions.json'
+    api_base_url = 'GITHUB_JOBS_API_BASE_URL'
     try:
         response = requests.get(api_base_url, params={'description': job_type})
         data = response.json()
@@ -287,3 +295,28 @@ def format_job_listings(job_listings):
     for job in job_listings[:5]:  # Show the first 5 job listings
         formatted_listings.append(f"{job['title']} - {job['company']} ({job['location']})\n{job['url']}\n")
     return "\n".join(formatted_listings)
+
+
+def get_latest_news():
+    # Fetch the latest news articles for India
+    NEWS_API_KEY = "NEWS_API_KEY"
+    try:
+        url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={NEWS_API_KEY}"
+        response = requests.get(url)
+        data = response.json()
+
+        if 'articles' in data:
+            articles = data['articles'][:5]  # Get the first 5 articles
+            news_info = []
+            for article in articles:
+                title = article['title']
+                url = article['url']
+                news_info.append(f"{title}: {url}")
+            
+            return "Here are the latest news articles for India:\n" + "\n".join(news_info)
+        else:
+            return None
+    
+    except Exception as e:
+        print(f"Error fetching latest news: {e}")
+        return None
