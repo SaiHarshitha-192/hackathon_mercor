@@ -136,6 +136,18 @@ def on_message(message_history: List[Message], state: dict = None):
         state[STATE_FASHION_TIP_GIVEN] = False
         return bot_response, state
 
+    # Check if the user asks for job search
+    if "find me a job" in user_message:
+        job_type = extract_job_type(user_message)
+        if job_type:
+            job_listings = find_jobs(job_type)
+            if job_listings:
+                return format_job_listings(job_listings), state
+            else:
+                return f"Sorry, I couldn't find any job listings for {job_type}. Please try again with a different job type.", state
+        else:
+            return "Please specify the type of job you're looking for.", state
+    
     return bot_response, state
 
 
@@ -181,7 +193,7 @@ def get_current_weather(location):
 
 def get_past_days_weather_info(location, days_ago):
     # Replace 'YOUR_OPENWEATHER_API_KEY' with your actual OpenWeatherMap API key
-    api_key = '13a578b44de9c18e47d345f9bd54bf4d'
+    api_key = 'YOUR_OPENWEATHER_API_KEY'
     base_url = "http://api.openweathermap.org/data/2.5/onecall/timemachine"
     start_date = (datetime.utcnow() - timedelta(days=days_ago)).timestamp()
     lat, lon = get_coordinates(location)
@@ -243,3 +255,35 @@ def get_fashion_tip_based_on_preference(preference):
 def get_health_tip():
     # Randomly select a health tip
     return random.choice(HEALTH_TIPS)
+
+
+def extract_job_type(user_message):
+    # Extract the job type from the user's message
+    words = user_message.split()
+    for i in range(len(words) - 1):
+        if words[i] == "job":
+            return " ".join(words[i + 1:])
+    return None
+
+
+def find_jobs(job_type):
+    # Replace 'GITHUB_JOBS_API_BASE_URL' with the base URL of GitHub Jobs API
+    api_base_url = 'https://jobs.github.com/positions.json'
+    try:
+        response = requests.get(api_base_url, params={'description': job_type})
+        data = response.json()
+        return data
+    except Exception as e:
+        print(f"Error fetching job listings: {e}")
+        return None
+
+
+def format_job_listings(job_listings):
+    # Format the job listings to be presented to the user
+    if not job_listings:
+        return "No job listings found."
+    
+    formatted_listings = []
+    for job in job_listings[:5]:  # Show the first 5 job listings
+        formatted_listings.append(f"{job['title']} - {job['company']} ({job['location']})\n{job['url']}\n")
+    return "\n".join(formatted_listings)
