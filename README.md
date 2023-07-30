@@ -14,4 +14,8 @@ i have added a health and fitness functionality. it suggests us based on what ti
 
 
 Fourth commit:
-have added job tips / search for a particular role
+have added job tips / search for a particular role   
+
+
+Fifth commit:
+have added real time news. used an api (newsorg api) to fetch current news in India.
